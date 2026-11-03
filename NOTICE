@@ -1,0 +1,13 @@
+sharpness-Lean-Rocq
+Copyright 2026 the sharpness-Lean-Rocq contributors.
+
+The project code and its repository build instructions are licensed under the
+Apache License, Version 2.0. See LICENSE.
+
+This distribution repackages unchanged formalisation sources from the frozen
+releases identified in SOURCE_MANIFEST.json. Build configuration and repository
+documentation were prepared for this source distribution in November 2026.
+
+External proof-assistant libraries retain their own licences and notices.
+They are dependencies and are not distributed in this repository.
+The manuscript and formalisation report are not part of this distribution.

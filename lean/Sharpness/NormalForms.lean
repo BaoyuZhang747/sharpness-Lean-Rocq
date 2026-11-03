@@ -1,0 +1,143 @@
+import Sharpness.Mackey
+
+/-!
+The span normal-form calculation in `lem:arbitrary`, Step 2.
+All displayed operators are actual linear maps; closure under composition is
+proved from the full Mackey identity, rather than added as an input.
+-/
+
+set_option autoImplicit false
+noncomputable section
+universe u v w
+namespace Sharpness
+open CategoryTheory
+open scoped BigOperators
+
+namespace MackeyModule
+variable {R : Type u} [Ring R] {C : Type v} [Category.{v} C]
+    {B : MackeyShape C} (M : MackeyModule.{u,v,w} R C B)
+
+def normalMap {P Q : C} (s : MackeySpan C P Q) : M.Value P →ₗ[R] M.Value Q :=
+  (M.push s.right).comp (M.pull s.left)
+
+def normalCompositeTerm {P Q T : C} (a : MackeySpan C P Q)
+    (b : MackeySpan C Q T) (i : B.Term b.left a.right) : MackeySpan C P T where
+  apex := (B.span b.left a.right i).apex
+  left := (B.span b.left a.right i).right ≫ a.left
+  right := (B.span b.left a.right i).left ≫ b.right
+
+theorem normalMap_comp {P Q T : C} (a : MackeySpan C P Q)
+    (b : MackeySpan C Q T) :
+    (M.normalMap b).comp (M.normalMap a) =
+      ∑ i, M.normalMap (normalCompositeTerm (B := B) a b i) := by
+  calc
+    (M.normalMap b).comp (M.normalMap a) =
+        (M.push b.right).comp
+          (((M.pull b.left).comp (M.push a.right)).comp (M.pull a.left)) := by
+      simp only [normalMap, LinearMap.comp_assoc]
+    _ = (M.push b.right).comp
+        ((∑ i : B.Term b.left a.right,
+          (M.push (B.span b.left a.right i).left).comp
+            (M.pull (B.span b.left a.right i).right)).comp (M.pull a.left)) := by
+      rw [M.mackey]
+    _ = ∑ i, M.normalMap (normalCompositeTerm (B := B) a b i) := by
+      ext x
+      simp only [normalCompositeTerm, normalMap, M.push_comp, M.pull_comp,
+        LinearMap.comp_apply, LinearMap.sum_apply, map_sum]
+      rfl
+
+theorem push_is_normal {P Q : C} (f : P ⟶ Q) :
+    M.push f = M.normalMap ⟨P, 𝟙 P, f⟩ := by
+  simp [normalMap, M.pull_id]
+
+theorem pull_is_normal {P Q : C} (f : P ⟶ Q) :
+    M.pull f = M.normalMap ⟨P, f, 𝟙 P⟩ := by
+  simp [normalMap, M.push_id]
+
+theorem id_is_normal (P : C) :
+    LinearMap.id (R := R) (M := M.Value P) = M.normalMap ⟨P, 𝟙 P, 𝟙 P⟩ := by
+  simp [normalMap, M.pull_id, M.push_id]
+
+instance finite_spans [Finite C] [∀ P Q : C, Finite (P ⟶ Q)] (P Q : C) :
+    Finite (MackeySpan C P Q) := by
+  let encode : MackeySpan C P Q → Σ L : C, (L ⟶ P) × (L ⟶ Q) :=
+    fun s => ⟨s.apex, s.left, s.right⟩
+  apply Finite.of_injective encode
+  intro a b h
+  cases a
+  cases b
+  cases h
+  rfl
+
+/-- Finite labels retain the source subgroup of every vector. -/
+def finiteGeneratorSet (X : Finset (Σ P : C, M.Value P)) (T : C) : Set (M.Value T) :=
+  {y | ∃ x ∈ X, ∃ s : MackeySpan C x.1 T, M.normalMap s x.2 = y}
+
+def finiteGeneratedValue (X : Finset (Σ P : C, M.Value P)) (T : C) :
+    Submodule R (M.Value T) := Submodule.span R (M.finiteGeneratorSet X T)
+
+theorem finiteGeneratorSet_finite [Finite C] [∀ P Q : C, Finite (P ⟶ Q)]
+    (X : Finset (Σ P : C, M.Value P)) (T : C) :
+    (M.finiteGeneratorSet X T).Finite := by
+  classical
+  have hf : (⋃ x ∈ (X : Set (Σ P : C, M.Value P)),
+      Set.range (fun s : MackeySpan C x.1 T => M.normalMap s x.2)).Finite :=
+    X.finite_toSet.biUnion fun x _ => Set.finite_range _
+  apply hf.subset
+  intro y hy
+  obtain ⟨x, hx, s, rfl⟩ := hy
+  exact Set.mem_iUnion.mpr ⟨x, Set.mem_iUnion.mpr ⟨hx, ⟨s, rfl⟩⟩⟩
+
+theorem finiteGeneratedValue_fg [Finite C] [∀ P Q : C, Finite (P ⟶ Q)]
+    (X : Finset (Σ P : C, M.Value P)) (T : C) :
+    (M.finiteGeneratedValue X T).FG :=
+  Submodule.fg_span (M.finiteGeneratorSet_finite X T)
+
+theorem normalMap_mem_finiteGeneratedValue (X : Finset (Σ P : C, M.Value P))
+    {P T : C} (b : MackeySpan C P T) {x : M.Value P}
+    (hx : x ∈ M.finiteGeneratedValue X P) :
+    M.normalMap b x ∈ M.finiteGeneratedValue X T := by
+  have h : M.finiteGeneratedValue X P ≤
+      (M.finiteGeneratedValue X T).comap (M.normalMap b) := by
+    apply Submodule.span_le.mpr
+    intro y hy
+    obtain ⟨z, hz, a, rfl⟩ := hy
+    change M.normalMap b (M.normalMap a z.2) ∈ M.finiteGeneratedValue X T
+    have he := LinearMap.congr_fun (M.normalMap_comp a b) z.2
+    simp only [LinearMap.comp_apply, LinearMap.sum_apply] at he
+    rw [he]
+    apply Submodule.sum_mem
+    intro i _
+    exact Submodule.subset_span ⟨z, hz, normalCompositeTerm (B := B) a b i, rfl⟩
+  exact h hx
+
+def finiteGeneratedSubfunctor (X : Finset (Σ P : C, M.Value P)) : M.Subfunctor where
+  obj := M.finiteGeneratedValue X
+  pull_closed := by
+    intro P T f x hx
+    rw [M.pull_is_normal f]
+    exact M.normalMap_mem_finiteGeneratedValue X _ hx
+  push_closed := by
+    intro P T f x hx
+    rw [M.push_is_normal f]
+    exact M.normalMap_mem_finiteGeneratedValue X _ hx
+
+theorem finiteGeneratedValue_mono {X Y : Finset (Σ P : C, M.Value P)}
+    (hXY : X ⊆ Y) (P : C) : M.finiteGeneratedValue X P ≤ M.finiteGeneratedValue Y P := by
+  apply Submodule.span_mono
+  intro x hx
+  obtain ⟨y, hy, s, hs⟩ := hx
+  exact ⟨y, hXY hy, s, hs⟩
+
+/-- Every vector lies in a subfunctor generated by one tagged vector. Together
+with monotonicity and the union of finite sets this gives the filtered union
+of full subfunctors with finitely generated values. -/
+theorem mem_singleton_finiteGeneratedValue (P : C) (x : M.Value P) :
+    x ∈ M.finiteGeneratedValue {⟨P, x⟩} P := by
+  classical
+  apply Submodule.subset_span
+  refine ⟨⟨P, x⟩, by simp, ⟨P, 𝟙 P, 𝟙 P⟩, ?_⟩
+  simp [normalMap, M.push_id, M.pull_id]
+
+end MackeyModule
+end Sharpness

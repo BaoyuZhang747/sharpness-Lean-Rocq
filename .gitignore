@@ -1,0 +1,26 @@
+# Lean dependencies and build products
+.lake/
+*.olean
+*.ilean
+*.olean.private
+*.olean.server
+
+# Rocq build products
+*.vo
+*.vos
+*.vok
+*.glob
+.*.aux
+.lia.cache
+.nia.cache
+.nra.cache
+.CoqMakefile.d
+Makefile.coq
+Makefile.coq.conf
+.Makefile.coq.d
+
+# Local tooling
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

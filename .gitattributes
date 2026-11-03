@@ -1,0 +1,17 @@
+# Preserve the frozen sources and toolchain records byte for byte.
+*.lean -text
+*.v -text
+toolchain/rocq-switch.export -text
+toolchain/rocq-installed-packages.json -text
+
+# Newly prepared packaging files use LF on all platforms.
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+LICENSE text eol=lf
+NOTICE text eol=lf
+lean-toolchain text eol=lf
+_CoqProject text eol=lf
+# Override the general JSON rule for the unmodified historical record.
+toolchain/rocq-installed-packages.json -text
