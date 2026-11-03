@@ -7,8 +7,9 @@ centralizer sharpness supplement. It includes **957 Lean modules** and
 
 The proof files are unchanged copies from the frozen releases identified in
 [SOURCE_MANIFEST.json](SOURCE_MANIFEST.json). Repository layout and build
-configuration have been prepared for this distribution. The formalisation
-report will be added separately.
+configuration have been prepared for this distribution. The 59-page
+[formalisation report](reports/formalisation-report.pdf) documents the
+formalisation; see [report details](reports/README.md).
 
 ## Source layout
 
@@ -61,5 +62,6 @@ are not included here.
 
 The project code and repository build instructions are licensed under
 [Apache 2.0](LICENSE). See [NOTICE](NOTICE). External libraries retain their
-own licences. The manuscript and formalisation report are not included in this
-code distribution.
+own licences. The [formalisation report](reports/formalisation-report.pdf)
+is provided separately and is not covered by the repository's Apache 2.0
+licence. The manuscript is not included.

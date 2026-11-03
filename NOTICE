@@ -10,4 +10,5 @@ documentation were prepared for this source distribution in November 2026.
 
 External proof-assistant libraries retain their own licences and notices.
 They are dependencies and are not distributed in this repository.
-The manuscript and formalisation report are not part of this distribution.
+The formalisation report in reports/ is provided separately and is not
+covered by the repository's Apache 2.0 licence. The manuscript is not included.

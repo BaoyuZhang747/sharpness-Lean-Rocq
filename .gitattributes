@@ -15,3 +15,6 @@ lean-toolchain text eol=lf
 _CoqProject text eol=lf
 # Override the general JSON rule for the unmodified historical record.
 toolchain/rocq-installed-packages.json -text
+
+# Preserve the published report as a binary PDF.
+*.pdf binary
